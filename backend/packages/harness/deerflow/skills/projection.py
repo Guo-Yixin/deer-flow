@@ -107,8 +107,16 @@ def _projection_lock(root: Path) -> Iterator[None]:
         if fcntl is not None:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
         else:  # pragma: no cover - Windows
-            lock_file.seek(0)
-            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            lock_file.seek(0, os.SEEK_END)
+            if lock_file.tell() == 0:
+                lock_file.write("\0")
+                lock_file.flush()
+
+            def acquire_region() -> None:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+
+            retry_until_locked(acquire_region)
         try:
             yield
         finally:

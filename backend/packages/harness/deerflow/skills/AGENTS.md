@@ -47,6 +47,8 @@ Lets a caller pass per-request, short-lived end-user credentials (e.g. an ERP to
 
 ### Custom skill export
 
+Windows projection lock acquisition uses `file_lock.retry_until_locked`; only contention is retried.
+
 - `export.py` captures only `storage.get_custom_skill_dir(name)`; never use public or legacy fallback. Export neither executes skills nor replaces installation scanning.
 - Capture and recheck source bytes under `skill_projection_read_lock` in `projection.py`, using the same lock as storage mutations. Keep writer staging and cleanup inside that lock; read-only export must not rebuild projections.
 - Build archives from captured bytes and require the preview's revision. Preserve file contents, empty directories, and normalized executable flags; import must not restore privileged permission bits.
