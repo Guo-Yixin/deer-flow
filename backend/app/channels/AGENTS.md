@@ -74,6 +74,7 @@ The cached value is reused for both the blocking (`runs.wait`) and streaming (`_
 - Frontend APIs: `GET /api/channels/providers`, `GET /api/channels/connections`, `POST /api/channels/{provider}/connect`, and `DELETE /api/channels/connections/{connection_id}`.
 - Browser APIs remain protected by normal Gateway auth/CSRF. Provider messages arrive through the already-configured channel workers.
 - Runtime credential configure/disconnect treats the runtime-config file write and `app.state.channels_config` reconciliation as one cancellation-owned commit; do not let caller cancellation escape between them.
+- `runtime_config_store.py` uses the shared non-blocking lock retry helper on Windows; keep cross-worker runtime-config saves waiting through contention instead of restoring `msvcrt.LK_LOCK`.
 - Provider-level `connection_status` reflects the user's newest connection row. With no binding it is `not_connected`, except in auth-disabled local mode where a configured running channel reports `connected` because all channel messages already route to the default user.
 - Slack replies use the configured operator bot token from `channels.slack` unless per-connection credentials are present; unreadable or corrupt stored credentials are treated as unavailable.
 - Telegram, Slack, Discord, Feishu/Lark, DingTalk, WeChat, and WeCom workers resolve incoming platform identities to connection records before reaching `ChannelManager`.
